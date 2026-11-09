@@ -1,0 +1,10 @@
+<!-- Management Team – SRDC | Officially appointed management of Somali Resilience & Development Consultancy. | management -->
+<section class="ph"><div class="wrap"><p class="crumb"><a href="/">Home</a> / Management Team</p><h1>Management Team</h1><p class="lead">The officially appointed management of SRDC.</p></div></section>
+<section class="sec bg-grey"><div class="wrap"><div class="filters" id="f" hidden><label for="fd" class="tag" style="align-self:center;margin:0">Department</label><select id="fd"><option value="">All departments</option></select></div>
+<div class="g tm" id="g"></div><p class="tag" id="note" style="margin-top:24px" hidden>Placeholder cards will be replaced when official management information is published.</p></div></section>
+<!--JS-->
+<script>(async()=>{const{$,esc,mgmt,mCard,ghost,mDialog}=SRDC;let all=await mgmt(),cur=all;
+ const draw=()=>{$("#g").innerHTML=cur.length?cur.map(mCard).join(""):ghost();$("#note").hidden=all.length>0};
+ if(all.length){[...new Set(all.map(x=>x.departments?.name).filter(Boolean))].forEach(d=>$("#fd").insertAdjacentHTML("beforeend",`<option>${esc(d)}</option>`));$("#f").hidden=false;
+  $("#fd").onchange=e=>{cur=all.filter(x=>!e.target.value||x.departments?.name==e.target.value);draw()}}
+ $("#g").onclick=e=>{const b=e.target.closest("[data-m]");if(b)mDialog(cur[b.dataset.m])};draw()})()</script>

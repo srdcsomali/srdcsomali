@@ -1,33 +1,35 @@
-SRDC website: deployment guide (GitHub + Netlify + Supabase)
-Files: index.html (public site), admin.html (dashboard), logo.png, build.js, netlify.toml, robots.txt, sitemap.xml.
-No secrets are stored in these files. Netlify writes config.js at build time from two environment variables.
-1. Upload to GitHub
-Open your empty repository on github.com > "uploading an existing file".
-Drag in ALL files from this folder (not the folder itself, not config.js or dist). Commit to the main branch.
-2. Deploy on Netlify
-Netlify > Add new site > Import an existing project > GitHub > choose the repository.
-Build settings are read from netlify.toml (command: node build.js, publish: dist). Leave them.
-Before deploying: Site configuration > Environment variables > add
-SUPABASE_URL = https://YOUR-PROJECT-REF.supabase.co (Supabase > Project Settings > API)
-SUPABASE_ANON_KEY = your publishable key (starts with sb_publishable_). NEVER the secret/service_role key; the build refuses it.
-Both values are public by design (they ship to every visitor's browser; Row Level Security protects the data). Leave "Contains secret values" UNTICKED for SUPABASE_URL and SUPABASE_ANON_KEY. If you do mark them secret, Netlify's scanner will find them in the generated dist/config.js and fail the build; in that case add SECRETS_SCAN_OMIT_PATHS = dist/config.js (this skips only that one generated file; scanning stays on for everything else). Never put real values in README.md or any committed file.
-Deploy. You get a free https://<name>.netlify.app address. Admin login: https://<name>.netlify.app/admin.html
-3. Supabase settings (dashboard, one time)
-Authentication > Sign In / Providers: turn OFF "Allow new users to sign up".
-Authentication > URL Configuration: Site URL = your Netlify address (later https://www.srdcsomali.com); add Redirect URLs: <your address>/admin.html (for password reset).
-Add admins: Authentication > Users > Add user (tick Auto Confirm), then set their role in the dashboard > Administrators.
-Supabase's built-in email is heavily rate-limited; for reliable reset emails add a custom SMTP provider later.
-4. Test checklist (after deploying)
-Open /admin.html, sign in as srdcsomali@gmail.com. Wrong password must show "Invalid email or password."
-Services: edit a service, set to draft: it must disappear from the public site after a refresh; set to published: it returns.
-Add a news item and a publication with a PDF upload, publish; confirm they appear under Resources and the PDF downloads.
-Add a project and an opportunity; confirm filters, closing date and Apply button.
-Send the contact form from the public site; it must appear in Admin > Inquiries. Subscribe to the newsletter; it must appear in Subscribers.
-Media: upload to internal-docs, use Open (signed link, 5 minutes). Visitors must not be able to open internal-docs files.
-Create a test editor and viewer (Add user), set roles, and confirm: editor cannot delete or see Administrators; viewer cannot see Inquiries or edit.
-5. Connect srdcsomali.com (after testing)
-Netlify > Domain management > Add custom domain > srdcsomali.com. At Hostinger DNS add the records Netlify shows (usually an A record for the root and a CNAME for www). HTTPS is automatic. Then update the Supabase Site URL.
-6. Backups
-Free Supabase projects have no automatic backups. Regularly export: Supabase > Database > Backups / or SQL Editor > export tables; and download files from Storage. Keep copies of srdc_schema.sql and this repository.
-Known limits
-Inquiry email notifications, anti-spam beyond the hidden field and database limits (e.g. Cloudflare Turnstile), in-dashboard admin invitations, SEO settings module, locations module and individual service pages are not included yet.
+# SRDC website: repository and deployment guide (GitHub + Netlify + Supabase)
+
+## Repository layout
+- `src/layout.html`: shared header (navigation), footer, floating WhatsApp button.
+- `src/pages/*.html`: one file per page (home, about, services, service, expertise, sectors, management, projects, resources, opportunities, contact, 404).
+- `src/static/`: `css/style.css`, `js/common.js`, `admin.html` (dashboard), `logo.png`, `robots.txt`.
+- `build.js`: assembles the pages into `dist/`, writes `config.js` from environment variables, generates `sitemap.xml`.
+- `netlify.toml`: build settings, redirects (`/services/<name>` and `/admin`), security headers.
+- `srdc_schema.sql` and `migrations/`: database setup (already applied to your Supabase project; kept for backup and reference).
+
+No real URL, key or password is stored in any file. Netlify writes `config.js` at build time from `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+
+## Deploy
+1. On GitHub, delete the OLD root files `index.html`, `admin.html`, `logo.png`, `robots.txt` (and `sitemap.xml` if present), then upload this whole folder structure (the `src` folder, `build.js`, `netlify.toml`, `README.md`, `.gitignore`, `srdc_schema.sql`, `migrations`). Commit to the main branch.
+2. Netlify keeps the existing settings (build command `node build.js`, publish directory `dist`) and the existing environment variables. Do not change them. Both variables stay UNTICKED for "Contains secret values" (or use `SECRETS_SCAN_OMIT_PATHS = dist/config.js`).
+3. Trigger deploy > "Clear cache and deploy site".
+
+## Supabase settings (dashboard)
+- Authentication > Sign In / Providers: "Allow new users to sign up" OFF.
+- Authentication > URL Configuration: Site URL = your live address. Redirect URLs must include `<address>/admin` and `<address>/admin.html` (password reset returns there).
+- Super administrator: srdcsomali@gmail.com has the `super_admin` role. To reset the password: sign-in page > "Forgot password", or Supabase > Authentication > Users > the user > "Send password recovery". Never put passwords in files.
+
+## After deploying: checklist
+1. Open each menu page; the active page is highlighted; mobile Menu works.
+2. /services: open each of the 8 services; the Inquire button pre-fills the contact form.
+3. /admin: sign in; add a management profile (photo, position, department, biography, areas of responsibility); use Preview; set Published and Active, tick "Management team member"; Save. It must appear on /management and the home page. Switch to Draft or untick Active: it must disappear.
+4. Departments and Sectors: rename or add one; Settings: change the WhatsApp number and confirm the floating button and Contact page use it.
+5. Send the contact form; see it under Inquiries.
+6. Test with an editor and a viewer account (Supabase > Authentication > Users > Add user, then set the role in Administrators).
+
+## Notes
+- Staff profiles are public only when status = published AND active AND (management OR directory). Today only "management" is used. For a future full directory, tick "Include in the full staff directory" on profiles and add a directory page; nobody else is shown publicly until then.
+- Service pages for new services added in the dashboard work automatically; the footer links and sitemap list the original eight until the next code update.
+- Photos: JPG, PNG or WebP, max 3 MB, stored in the `site-media` bucket under `staff/`.
+- Not included: inquiry email notifications, stronger anti-spam (e.g. Cloudflare Turnstile), in-dashboard admin invitations, SEO and locations modules, a public staff directory page, real photography.

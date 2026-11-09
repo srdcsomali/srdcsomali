@@ -1,0 +1,51 @@
+<!-- SRDC – Somali Resilience & Development Consultancy | Research. Insight. Solutions. Humanitarian, agriculture, MEAL, research and digital data consultancy based in Baidoa, Somalia. | home -->
+<section class="hero"><div class="wrap hg"><div>
+<p class="eyebrow">Research. Insight. Solutions.</p>
+<h1>Building Resilience Through Research, Innovation and Sustainable Development.</h1>
+<p class="lead">Delivering professional humanitarian, agricultural, research and development consultancy services through local expertise and evidence-based solutions.</p>
+<div class="btns"><a class="btn" href="/services">Explore Our Services</a><a class="btn o" href="/contact">Contact Our Team</a></div></div>
+<div class="panel"><div class="stat"><b>8</b><span>consultancy service lines</span></div><div class="stat"><b>7</b><span>offices across Somalia</span></div><div class="stat"><b>HQ</b><span>Baidoa, Southwest State</span></div></div></div></section>
+
+<section class="sec"><div class="wrap two"><div><p class="eyebrow">Who we are</p><h2>A multidisciplinary Somali consultancy</h2>
+<p class="lead">SRDC works with humanitarian organizations, NGOs, development partners, government institutions and private-sector clients, providing technical services from our headquarters in Baidoa and sub-offices across Somalia.</p>
+<div class="btns"><a class="btn nv" href="/about">About SRDC</a></div></div>
+<div class="card ac"><h3>Our mission</h3><p>To provide high-quality research, technical consultancy, monitoring and evaluation, and development solutions that strengthen organizations, inform decision-making and improve community resilience.</p></div></div></section>
+
+<section class="sec bg-blue"><div class="wrap"><div class="sh center"><p class="eyebrow">Our Core Services</p><h2>What we do</h2></div>
+<div class="g" id="sv"></div><p class="center more"><a class="btn" href="/services">View All Services</a></p></div></section>
+
+<section class="sec"><div class="wrap"><div class="sh center"><p class="eyebrow">Why choose SRDC</p><h2>Local knowledge, professional standards</h2></div>
+<div class="g"><div class="card"><div class="ic"><svg class="i"><use href="#i-pin"/></svg></div><h3>Local knowledge</h3><p>Contextual understanding of Somali communities and institutions.</p></div>
+<div class="card"><div class="ic"><svg class="i"><use href="#i-users"/></svg></div><h3>Multidisciplinary expertise</h3><p>Humanitarian, agriculture, research, MEAL and data specialists.</p></div>
+<div class="card"><div class="ic"><svg class="i"><use href="#i-chart"/></svg></div><h3>Evidence-based approaches</h3><p>Decisions grounded in rigorous data and analysis.</p></div>
+<div class="card"><div class="ic"><svg class="i"><use href="#i-database"/></svg></div><h3>Research and data management</h3><p>Professional survey design, digital collection and analysis.</p></div>
+<div class="card"><div class="ic"><svg class="i"><use href="#i-globe"/></svg></div><h3>Nationwide network</h3><p>Headquarters in Baidoa and six sub-offices.</p></div>
+<div class="card"><div class="ic"><svg class="i"><use href="#i-shield"/></svg></div><h3>Quality and accountability</h3><p>Quality assurance and transparent reporting.</p></div></div></div></section>
+
+<section class="sec bg-green"><div class="wrap"><div class="sh"><p class="eyebrow">Sectors</p><h2>Where we can support you</h2><p class="lead">Sectors in which SRDC can provide consultancy and technical support.</p></div>
+<div><a class="pill" href="/sectors">Humanitarian Response</a><a class="pill" href="/sectors">Agriculture and Rural Development</a><a class="pill" href="/sectors">Food Security and Nutrition</a><a class="pill" href="/sectors">Water, Sanitation and Hygiene</a><a class="pill" href="/sectors">Health</a><a class="pill" href="/sectors">Protection</a><a class="pill" href="/sectors">Gender and Social Inclusion</a><a class="pill" href="/sectors">Climate Resilience</a><a class="pill" href="/sectors">Livelihoods and Economic Recovery</a><a class="pill" href="/sectors">Governance and Institutional Development</a></div>
+<p class="more"><a class="btn nv" href="/sectors">Explore Sectors</a></p></div></section>
+
+<section class="sec bg-navy"><div class="wrap"><div class="sh"><p class="eyebrow">Our Expertise</p><h2>Methods and tools</h2></div>
+<div class="g g4"><div class="card"><h3>Research</h3><p>Household surveys, KII and FGD, feasibility studies, market research.</p></div><div class="card"><h3>MEAL</h3><p>Baselines, evaluations, third-party monitoring, results frameworks.</p></div><div class="card"><h3>Digital data</h3><p>KoboToolbox, ODK, GIS mapping, Power BI dashboards.</p></div><div class="card"><h3>Capacity building</h3><p>PCM, M&amp;E, research ethics, PSEA and safeguarding training.</p></div></div>
+<p class="more"><a class="btn" href="/expertise">Our Expertise</a></p></div></section>
+
+<section class="sec"><div class="wrap"><div class="sh"><p class="eyebrow">Leadership</p><h2>Management Team</h2><p class="lead">Meet the officially appointed management of SRDC.</p></div>
+<div class="g tm" id="mt"></div><p class="more"><a class="btn nv" href="/management">Meet Our Management Team</a></p></div></section>
+
+<section class="sec bg-blue"><div class="wrap g g2" style="align-items:start"><div><p class="eyebrow">Projects &amp; Experience</p><h2>Selected projects</h2><div id="pj"></div><p class="more"><a class="btn nv" href="/projects">View Projects</a></p></div>
+<div><p class="eyebrow">Resources</p><h2>Latest publications</h2><div id="pb"></div><p class="more"><a class="btn nv" href="/resources">Read Publications</a></p></div></div></section>
+
+<section class="sec bg-navy center"><div class="wrap"><h2>Looking for a reliable research, humanitarian or development consultancy partner?</h2><p class="lead">Tell us about your assignment and we will respond by email.</p><div class="btns" style="justify-content:center"><a class="btn" href="/contact?category=Consultancy+Services">Work With SRDC</a><a class="btn o" href="/contact">Contact Us</a></div></div></section>
+<!--JS-->
+<script>
+(async()=>{const{$,esc,ic,sb,fd,media,services,svcCard,mgmt,mCard,ghost,mDialog}=SRDC;
+ $("#sv").innerHTML=(await services()).slice(0,6).map(svcCard).join("");
+ const m=(await mgmt()).slice(0,4);$("#mt").innerHTML=m.length?m.map(mCard).join(""):ghost();
+ $("#mt").onclick=e=>{const b=e.target.closest("[data-m]");if(b)mDialog(m[b.dataset.m])};
+ const none=t=>`<div class="empty">${t}</div>`;
+ if(sb){const[p,r]=await Promise.all([sb.from("projects").select("*").order("published_at",{ascending:false}).limit(3),sb.from("publications").select("*").order("published_at",{ascending:false}).limit(3)]);
+  $("#pj").innerHTML=(p.data||[]).map(x=>`<div class="card" style="margin-bottom:14px"><h3>${esc(x.title)}</h3><p>${esc([x.client,x.location].filter(Boolean).join(" · "))}</p></div>`).join("")||none("Verified company assignments will be published here.");
+  $("#pb").innerHTML=(r.data||[]).map(x=>`<div class="card" style="margin-bottom:14px"><p class="tag">${esc(x.category)} · ${fd(x.published_at)}</p><h3>${esc(x.title)}</h3></div>`).join("")||none("Publications will be listed here once uploaded.")}
+ else{$("#pj").innerHTML=none("Verified company assignments will be published here.");$("#pb").innerHTML=none("Publications will be listed here once uploaded.")}})();
+</script>

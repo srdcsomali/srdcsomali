@@ -1,0 +1,12 @@
+<!-- Projects & Experience – SRDC | Verified assignments and experience of Somali Resilience & Development Consultancy. | projects -->
+<section class="ph"><div class="wrap"><p class="crumb"><a href="/">Home</a> / Projects</p><h1>Projects &amp; Experience</h1></div></section>
+<section class="sec bg-blue"><div class="wrap"><div class="filters"><select aria-label="Sector"><option>All sectors</option></select><select aria-label="Location"><option>All locations</option></select><select aria-label="Assignment type"><option>All assignment types</option></select></div>
+<div class="g g2" id="g"></div><div class="empty" id="e">Verified company assignments will be published here once supplied by SRDC management. Founder experience is shown separately from the company’s corporate experience.</div></div></section>
+<!--JS-->
+<script>(async()=>{const{$,$$,esc,sb,media}=SRDC;if(!sb)return;const{data}=await sb.from("projects").select("*").order("published_at",{ascending:false}),P=data||[];
+ const sels=$$(".filters select"),K=["sector","location","assignment_type"];
+ K.forEach((f,i)=>{[...new Set(P.map(x=>x[f]).filter(Boolean))].sort().forEach(v=>sels[i].insertAdjacentHTML("beforeend",`<option>${esc(v)}</option>`));sels[i].onchange=draw});
+ const link=(p,t)=>p?`<p><a href="${esc(media(p))}" target="_blank" rel="noopener">${t}</a></p>`:"";
+ function draw(){const v=sels.map(s=>s.value),L=P.filter(p=>K.every((f,i)=>v[i].startsWith("All")||p[f]===v[i]));
+  $("#g").innerHTML=L.map(p=>`<div class="card ac">${p.cover_image_path?`<img src="${esc(media(p.cover_image_path))}" alt="" loading="lazy" style="border-radius:10px;margin-bottom:14px">`:""}<h3>${esc(p.title)}</h3><p class="tag">${esc([p.client,p.sector,p.location].filter(Boolean).join(" · "))}${p.duration_text?" · "+esc(p.duration_text):""}</p>${p.experience_type=="founder"?'<p><span class="pill">Founder experience</span></p>':""}<p>${esc(p.description)}</p>${p.scope_of_services?`<p class="tag"><b>Scope:</b> ${esc(p.scope_of_services)}</p>`:""}${p.deliverables?`<p class="tag"><b>Deliverables:</b> ${esc(p.deliverables)}</p>`:""}${(p.documents||[]).map((d,i)=>link(d,"Document "+(i+1))).join("")}</div>`).join("");$("#e").hidden=P.length>0}
+ draw()})()</script>

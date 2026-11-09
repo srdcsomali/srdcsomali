@@ -1,0 +1,11 @@
+<!-- Service – SRDC | Service details, scope of work and inquiry for SRDC consultancy services. | services -->
+<section class="ph"><div class="wrap"><p class="crumb"><a href="/">Home</a> / <a href="/services">Our Services</a> / <span id="bc">Service</span></p><h1 id="t">Service</h1></div></section>
+<section class="sec"><div class="wrap two"><div id="main-c"><p class="lead">Loading…</p></div><aside class="card ac"><h3>Request this service</h3><p>Tell us about your assignment and we will respond by email.</p><p><a class="btn" id="inq" href="/contact">Make an inquiry</a></p></aside></div></section>
+<section class="sec bg-blue"><div class="wrap"><div class="sh"><p class="eyebrow">More services</p><h2>Other service lines</h2></div><div class="g" id="oth"></div><p class="more"><a class="btn nv" href="/services">All Services</a></p></div></section>
+<!--JS-->
+<script>(async()=>{const{$,esc,br,ic,services,svcCard}=SRDC;const all=await services(),slug=decodeURIComponent(location.pathname.split("/").filter(Boolean).pop()||""),s=all.find(x=>x.slug==slug);
+ if(!s){$("#t").textContent="Service not found";$("#main-c").innerHTML='<p class="lead">This service page does not exist. <a href="/services">See all services</a>.</p>';return}
+ document.title=s.title+" – SRDC";$("#t").textContent=s.title;$("#bc").textContent=s.title;
+ $("#inq").href="/contact?category="+encodeURIComponent(s.cat)+"&subject="+encodeURIComponent("Inquiry: "+s.title);
+ $("#main-c").innerHTML=`<p class="eyebrow">Overview</p><h2>${esc(s.title)}</h2><p class="lead">${br(s.description||s.summary)}</p><h3 style="margin-top:34px">Scope of work</h3><ul class="ck">${s.scope.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><h3 style="margin-top:34px">Deliverables</h3>${s.deliverables.length?`<ul class="ck">${s.deliverables.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"<p>Deliverables are agreed with each client in the assignment terms of reference.</p>"}`;
+ $("#oth").innerHTML=all.filter(x=>x.slug!=slug).slice(0,3).map(svcCard).join("")})()</script>

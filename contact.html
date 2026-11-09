@@ -1,0 +1,28 @@
+<!-- Contact Us – SRDC | Contact SRDC in Baidoa, Somalia: consultancy requests, partnerships, tenders, training and recruitment. | contact -->
+<section class="ph"><div class="wrap"><p class="crumb"><a href="/">Home</a> / Contact Us</p><h1>Contact Us</h1></div></section>
+<section class="sec"><div class="wrap two"><div><p class="eyebrow">Send an inquiry</p><h2>Request a consultancy</h2>
+<form class="fg" id="cf" novalidate>
+<div><label for="n">Full name *</label><input id="n" required></div><div><label for="o">Organization</label><input id="o"></div>
+<div><label for="e">Email address *</label><input id="e" type="email" required></div><div><label for="t">Telephone number</label><input id="t" type="tel"></div>
+<div><label for="c">Country</label><input id="c"></div>
+<div><label for="k">Inquiry category</label><select id="k"><option>General Inquiry</option><option>Consultancy Services</option><option>Research and Assessments</option><option>Partnership Opportunities</option><option>Procurement and Tenders</option><option>Training</option><option>Recruitment</option></select></div>
+<div class="full"><label for="s">Subject *</label><input id="s" required></div><div class="full"><label for="m">Message *</label><textarea id="m" rows="5" required></textarea></div>
+<input class="hp" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+<div class="full"><label style="font-weight:400"><input type="checkbox" id="pc" style="width:auto"> I consent to SRDC processing my details to respond to this inquiry. *</label></div>
+<div class="full"><button class="btn" type="submit">Send inquiry</button><p id="fm" role="status"></p></div></form></div>
+<div><div class="card ac"><h3>Somali Resilience &amp; Development Consultancy (SRDC)</h3><p><b>Headquarters:</b> Baidoa, Southwest State of Somalia.</p><p style="margin-top:10px"><b>Sub-offices:</b> Mogadishu, Buurhakaba, Hudur, Qansaxdheere, Berdale and Jowhar.</p><p style="margin-top:10px"><b>Email:</b> <a href="mailto:srdcsomali@gmail.com">srdcsomali@gmail.com</a></p>
+<p style="margin-top:18px"><a class="btn wab wa-link" href="https://wa.me/252616013115?text=Hello%20SRDC%2C%20I%20would%20like%20to%20enquire%20about%20your%20consultancy%20services." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-wa"/></svg>Chat on WhatsApp</a></p></div></div></div></section>
+<!--JS-->
+<script>(()=>{const{$,sb}=SRDC,q=new URLSearchParams(location.search);
+ if(q.get("category")&&[...$("#k").options].some(o=>o.value==q.get("category")))$("#k").value=q.get("category");if(q.get("subject"))$("#s").value=q.get("subject").slice(0,200);
+ $("#cf").addEventListener("submit",async e=>{e.preventDefault();const m=$("#fm"),g=id=>$("#"+id).value.trim();if($("#hp").value)return;
+  if(g("n").length<2||g("s").length<2||g("m").length<5){m.textContent="Please complete name, subject and message.";return}
+  if(!/^\S+@\S+\.\S+$/.test(g("e"))){m.textContent="Please enter a valid email address.";return}
+  if(!$("#pc").checked){m.textContent="Please accept the privacy consent.";return}
+  const cat=g("k"),b=e.target.querySelector("button[type=submit]");
+  if(!sb){location.href="mailto:srdcsomali@gmail.com?subject="+encodeURIComponent("["+cat+"] "+g("s"))+"&body="+encodeURIComponent(g("m")+"\n\n"+g("n")+" "+g("e"));return}
+  b.disabled=true;m.textContent="Sending…";
+  const kind=cat=="Partnership Opportunities"?"partnership":cat=="Consultancy Services"?"consultancy":"contact";
+  const{error}=await sb.from("inquiries").insert({kind,full_name:g("n"),organization:g("o")||null,email:g("e"),phone:g("t")||null,country:g("c")||null,category:cat,subject:g("s"),message:g("m"),consent:true});
+  b.disabled=false;if(error){m.textContent="Sorry, we could not send your message. Please email srdcsomali@gmail.com.";return}
+  m.textContent="Thank you. Your inquiry has been received and we will reply by email.";e.target.reset()})})()</script>

@@ -1,0 +1,13 @@
+<!-- Resources – SRDC | Research reports, assessments, policy briefs, publications and news from SRDC. | resources -->
+<section class="ph"><div class="wrap"><p class="crumb"><a href="/">Home</a> / Resources</p><h1>Resources &amp; Publications</h1></div></section>
+<section class="sec bg-green"><div class="wrap"><div class="filters"><input type="search" id="q" placeholder="Search resources" aria-label="Search resources"></div>
+<div id="cats"><button class="pill" type="button">Research Reports</button><button class="pill" type="button">Assessment Reports</button><button class="pill" type="button">Policy Briefs</button><button class="pill" type="button">Technical Publications</button><button class="pill" type="button">Development Articles</button><button class="pill" type="button">Training Materials</button><button class="pill" type="button">Case Studies</button><button class="pill" type="button">News and Updates</button></div>
+<div class="g" id="g" style="margin-top:20px"></div><div class="empty" id="e">No publications have been uploaded yet.</div></div></section>
+<!--JS-->
+<script>(async()=>{const{$,$$,esc,br,sb,media,fd}=SRDC;if(!sb)return;
+ const[r,n]=await Promise.all([sb.from("publications").select("*"),sb.from("news").select("*")]);
+ const R=[...(r.data||[]).map(x=>({cat:x.category,title:x.title,text:x.summary,date:x.published_at,file:x.file_path})),...(n.data||[]).map(x=>({cat:"News and Updates",title:x.title,text:x.excerpt,body:x.body,date:x.published_at}))].sort((a,b)=>new Date(b.date)-new Date(a.date));
+ let cat="";const draw=()=>{const q=$("#q").value.toLowerCase(),L=R.filter(x=>(!cat||x.cat==cat)&&(x.title+" "+x.text).toLowerCase().includes(q));
+  $("#g").innerHTML=L.map(x=>`<div class="card ac"><p class="tag">${esc(x.cat)} · ${fd(x.date)}</p><h3>${esc(x.title)}</h3><p>${esc(x.text)}</p>${x.body?`<details><summary>Read more</summary><p>${br(x.body)}</p></details>`:""}${x.file?`<p><a href="${esc(media(x.file))}" target="_blank" rel="noopener">Download</a></p>`:""}</div>`).join("");
+  $("#e").hidden=R.length>0&&L.length>0;$("#e").textContent=R.length?"No matching resources.":"No publications have been uploaded yet."};
+ $("#q").oninput=draw;$("#cats").onclick=e=>{const b=e.target.closest(".pill");if(!b)return;cat=cat==b.textContent?"":b.textContent;$$("#cats .pill").forEach(x=>x.classList.toggle("on",x.textContent==cat));draw()};draw()})()</script>
