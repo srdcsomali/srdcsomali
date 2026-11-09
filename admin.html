@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>SRDC Admin</title>
+<link rel="icon" href="logo.png">
+<style>
+:root{--navy:#0B2D50;--green:#269B45;--bg:#F4F6F8;--card:#fff;--text:#1d2a38;--muted:#566474;--line:#dde3ea;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1620;--card:#152638;--text:#e6edf4;--muted:#a3b2c2;--line:#25384c;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+button,input,select,textarea{font:inherit}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--text)}
+label{display:block;font-size:.85rem;font-weight:600;margin:0 0 4px}
+.btn{background:var(--green);color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:600;cursor:pointer}
+.btn.n{background:var(--navy)}.btn.d{background:#b3261e}.btn.l{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+header{background:#fff;border-bottom:4px solid var(--green);display:flex;align-items:center;gap:14px;padding:8px 18px;position:sticky;top:0;z-index:5}
+header img{height:38px}header .sp{flex:1}header span{color:#0B2D50;font-size:.85rem}
+.app{display:grid;grid-template-columns:210px 1fr;min-height:calc(100vh - 56px)}
+aside{background:var(--navy);padding:14px 0}
+aside button{display:block;width:100%;text-align:left;background:none;border:0;color:#dbe6f1;padding:10px 20px;cursor:pointer}
+aside button.on{background:rgba(255,255,255,.12);box-shadow:inset 4px 0 0 var(--green);color:#fff}
+main{padding:22px;min-width:0}
+h1{margin:0 0 16px;font-size:1.4rem;color:var(--navy)}@media (prefers-color-scheme:dark){h1{color:#fff}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.stats b{font-size:1.8rem;display:block}
+table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.tw{overflow-x:auto}
+.badge{font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--line)}.badge.published,.badge.new{background:#cfeedb;color:#14532d}
+.fg{display:grid;gap:14px;grid-template-columns:1fr 1fr}.full{grid-column:1/-1}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+#msg{position:fixed;bottom:16px;right:16px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;display:none;max-width:80vw;z-index:9}
+#msg.err{background:#b3261e}
+.login{max-width:380px;margin:9vh auto;padding:0 16px}.login img{width:100%;margin-bottom:12px}
+small{color:var(--muted)}details{border-bottom:1px solid var(--line);padding:8px 0}summary{cursor:pointer}
+@media (max-width:760px){.app{grid-template-columns:1fr}aside{display:flex;overflow-x:auto;padding:0}aside button{white-space:nowrap}.fg{grid-template-columns:1fr}}
+:focus-visible{outline:3px solid #f5b800;outline-offset:2px}
+</style>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div id="root"></div><div id="msg" role="status"></div>
+<script>
+const C=window.SRDC_CONFIG||{};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+if(!C.url||!C.key||!window.supabase){document.body.innerHTML='<p style="padding:2rem">The site is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in Netlify and redeploy.</p>';throw new Error("no config")}
+const sb=supabase.createClient(C.url,C.key);
+let me=null,view="home",docs=[];
+const ST=["draft","published"],CAT=["General Inquiry","Consultancy Services","Research and Assessments","Partnership Opportunities","Procurement and Tenders","Training","Recruitment"];
+const SL=["slug","Slug (blank = automatic)","slug"],STA=["status","Status","select",ST];
+const T={
+services:{n:"Services",f:[["title","Title","text"],SL,["summary","Short summary","textarea"],["description","Description","textarea"],["scope","Scope of work (one per line)","lines"],["deliverables","Deliverables (one per line)","lines"],["inquiry_category","Inquiry category","select",CAT],["sort_order","Display order","number"],STA]},
+projects:{n:"Projects",f:[["title","Project title","text"],SL,["client","Client or commissioning organization","text"],["experience_type","Experience type (company or founder)","select",["company","founder"]],["sector","Sector","text"],["location","Location","text"],["assignment_type","Assignment type","text"],["start_date","Start date","date"],["end_date","End date","date"],["duration_text","Duration","text"],["description","Assignment description","textarea"],["scope_of_services","Scope of services","textarea"],["deliverables","Deliverables","textarea"],["cover_image_path","Cover image","image"],["documents","Documents","files"],STA]},
+publications:{n:"Publications",f:[["title","Title","text"],SL,["category","Category","select",["Research Reports","Assessment Reports","Policy Briefs","Technical Publications","Development Articles","Training Materials","Case Studies","News and Updates"]],["author","Author","text"],["summary","Summary","textarea"],["file_path","PDF or document","doc"],["cover_image_path","Cover image","image"],STA]},
+opportunities:{n:"Opportunities",f:[["title","Title","text"],SL,["opportunity_type","Type","select",["Consultancy","Expression of Interest","Request for Proposals","Research Assignment","Enumerator Recruitment","Training","Partnership","Career"]],["location","Location","text"],["closing_date","Closing date","date"],["summary","Summary","textarea"],["description","Description","textarea"],["how_to_apply","How to apply","textarea"],["apply_email","Application email","nt"],["document_path","Terms of reference or document","doc"],STA]},
+news:{n:"News",f:[["title","Headline","text"],SL,["excerpt","Excerpt","textarea"],["body","Body","textarea"],["cover_image_path","Cover image","image"],STA]}};
+const rnd=()=>Math.random().toString(36).slice(2,6);
+const slugify=s=>s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)||"item";
+function msg(t,err){const m=$("#msg");m.textContent=t;m.className=err?"err":"";m.style.display="block";clearTimeout(msg.t);msg.t=setTimeout(()=>m.style.display="none",4500)}
+const canEdit=()=>me&&["super_admin","editor"].includes(me.role),isSuper=()=>me&&me.role==="super_admin";
+
+/* ---------- login ---------- */
+function showLogin(note,recovery){
+ $("#root").innerHTML=`<div class="login card"><img src="logo.png" alt="SRDC"><h1>${recovery?"Set a new password":"Administrator login"}</h1>${note?`<p>${esc(note)}</p>`:""}
+ <form id="lf">${recovery?"":'<label for="le">Email</label><input id="le" type="email" required autocomplete="username"><br><br>'}
+ <label for="lp">${recovery?"New password (min. 10 characters)":"Password"}</label><input id="lp" type="password" required minlength="${recovery?10:1}" autocomplete="${recovery?"new-password":"current-password"}"><br><br>
+ <button class="btn" style="width:100%">${recovery?"Save password":"Sign in"}</button></form>
+ ${recovery?"":'<p><button class="btn l" id="fp" type="button">Forgot password</button></p>'}</div>`;
+ $("#lf").onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;
+  if(recovery){const{error}=await sb.auth.updateUser({password:$("#lp").value});b.disabled=false;if(error)return msg(error.message,1);msg("Password updated.");return boot()}
+  const{error}=await sb.auth.signInWithPassword({email:$("#le").value.trim(),password:$("#lp").value});b.disabled=false;
+  if(error)return msg("Invalid email or password.",1);boot()};
+ if(!recovery)$("#fp").onclick=async()=>{const em=$("#le").value.trim();if(!em)return msg("Enter your email first.",1);
+  await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});msg("If the account exists, a reset email has been sent.")}}
+async function boot(){
+ const{data:{session}}=await sb.auth.getSession();if(!session)return showLogin();
+ const{data:p}=await sb.from("profiles").select("*").eq("id",session.user.id).maybeSingle();
+ if(!p||!p.active){await sb.auth.signOut();return showLogin("This account does not have access.")}
+ me=p;shell()}
+sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY")showLogin("",true)});
+
+/* ---------- shell ---------- */
+function shell(){
+ const items=[["home","Overview"],...Object.entries(T).map(([k,v])=>[k,v.n]),...(canEdit()?[["inquiries","Inquiries"],["subscribers","Subscribers"],["media","Media"]]:[]),...(isSuper()?[["users","Administrators"]]:[])];
+ $("#root").innerHTML=`<header><img src="logo.png" alt="SRDC"><div class="sp"></div><span>${esc(me.full_name||me.email)} · ${me.role.replace("_"," ")}</span><button class="btn l" id="lo">Sign out</button></header>
+ <div class="app"><aside>${items.map(i=>`<button data-v="${i[0]}">${i[1]}</button>`).join("")}</aside><main id="main"></main></div>`;
+ $("#lo").onclick=async()=>{await sb.auth.signOut();me=null;showLogin()};
+ document.querySelector("aside").onclick=e=>{const b=e.target.closest("button");if(b){view=b.dataset.v;go()}};go()}
+function go(){document.querySelectorAll("aside button").forEach(b=>b.classList.toggle("on",b.dataset.v===view));
+ ({home,inquiries,subscribers,media,users}[view]||(()=>list(view)))()}
+
+async function home(){
+ const m=$("#main");m.innerHTML="<h1>Overview</h1><div class='stats' id='st'></div>";
+ const names=Object.keys(T),res=await Promise.all(names.map(t=>sb.from(t).select("id",{count:"exact",head:true})));
+ let h=names.map((t,i)=>`<div class="card"><b>${res[i].count??0}</b>${T[t].n}</div>`).join("");
+ if(canEdit()){const q=await sb.from("inquiries").select("id",{count:"exact",head:true}).eq("status","new");h+=`<div class="card"><b>${q.count??0}</b>New inquiries</div>`}
+ $("#st").innerHTML=h}
+
+/* ---------- content CRUD ---------- */
+async function list(t){
+ const m=$("#main"),{data,error}=await sb.from(t).select("*").order("updated_at",{ascending:false});
+ if(error)return m.innerHTML="<p>"+esc(error.message)+"</p>";
+ m.innerHTML=`<h1>${T[t].n}</h1><div class="row">${canEdit()?'<button class="btn" id="add">Add new</button>':""}</div><div class="card tw"><table><tr><th>Title</th><th>Status</th><th>Updated</th><th></th></tr>
+ ${data.map(r=>`<tr><td>${esc(r.title)}</td><td><span class="badge ${r.status}">${r.status}</span></td><td>${new Date(r.updated_at).toLocaleDateString()}</td><td>${canEdit()?`<button class="btn n" data-e="${r.id}">Edit</button> `:""}${isSuper()?`<button class="btn d" data-d="${r.id}">Delete</button>`:""}</td></tr>`).join("")||"<tr><td colspan=4>Nothing here yet.</td></tr>"}</table></div>`;
+ if(canEdit())$("#add").onclick=()=>edit(t,null);
+ m.onclick=async e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.e)edit(t,data.find(r=>r.id===b.dataset.e));
+  if(b.dataset.d&&confirm("Delete this item permanently?")){const{error}=await sb.from(t).delete().eq("id",b.dataset.d);error?msg(error.message,1):(msg("Deleted."),list(t))}}}
+function fld([k,l,ty,o],v){const id="f_"+k;let h;
+ if(ty=="textarea")h=`<textarea id="${id}" rows="4">${esc(v)}</textarea>`;
+ else if(ty=="lines")h=`<textarea id="${id}" rows="4">${esc((v||[]).join("\n"))}</textarea>`;
+ else if(ty=="select")h=`<select id="${id}">${o.map(x=>`<option${x==v?" selected":""}>${esc(x)}</option>`).join("")}</select>`;
+ else if(ty=="image"||ty=="doc")h=`<input type="file" id="${id}" accept="${ty=="image"?"image/png,image/jpeg,image/webp":".pdf,.docx,.xlsx,.pptx,image/*"}"><small>${v?"Current: "+esc(v)+" (choose a file to replace)":"No file yet"}</small>`;
+ else if(ty=="files")h=`<input type="file" id="${id}" multiple accept=".pdf,.docx,.xlsx,.pptx,image/*"><div id="exf"></div>`;
+ else h=`<input id="${id}" type="${ty=="number"?"number":ty=="date"?"date":"text"}" value="${esc(v??"")}"${ty=="slug"?' pattern="[a-z0-9-]*"':""}>`;
+ return `<div class="${["textarea","lines","files"].includes(ty)?"full":""}"><label for="${id}">${l}</label>${h}</div>`}
+function exf(){const d=$("#exf");if(!d)return;d.innerHTML=docs.map((p,i)=>`<small>${esc(p)} <button type="button" class="btn l" data-x="${i}">Remove</button></small><br>`).join("");
+ d.onclick=e=>{const b=e.target.closest("[data-x]");if(b){docs.splice(+b.dataset.x,1);exf()}}}
+async function up(file,t){
+ if(file.size>10*1048576)throw new Error(file.name+" is larger than 10 MB.");
+ const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,""),p=`${t}/${crypto.randomUUID()}.${ext}`;
+ const{error}=await sb.storage.from("site-media").upload(p,file,{contentType:file.type});if(error)throw error;return p}
+function edit(t,row){
+ docs=[...(row?.documents||[])];const f=T[t].f;
+ $("#main").innerHTML=`<h1>${row?"Edit":"Add"} ${T[t].n.toLowerCase()}</h1><form class="card fg" id="ef">${f.map(x=>fld(x,row?row[x[0]]:x[2]=="number"?0:"")).join("")}
+ <div class="full row"><button class="btn" id="sv">Save</button><button class="btn l" type="button" id="cx">Cancel</button></div></form>`;exf();
+ $("#cx").onclick=()=>list(t);
+ $("#ef").onsubmit=async e=>{e.preventDefault();const b=$("#sv");b.disabled=true;
+  try{const o={};
+   for(const[k,,ty]of f){const el=$("#f_"+k);
+    if(ty=="lines")o[k]=el.value.split("\n").map(s=>s.trim()).filter(Boolean);
+    else if(ty=="number")o[k]=parseInt(el.value)||0;
+    else if(ty=="date")o[k]=el.value||null;
+    else if(ty=="nt")o[k]=el.value.trim()||null;
+    else if(ty=="image"||ty=="doc"){o[k]=row?.[k]||null;if(el.files[0])o[k]=await up(el.files[0],t)}
+    else if(ty=="files"){const a=[...docs];for(const fl of el.files)a.push(await up(fl,t));o[k]=a}
+    else if(ty=="slug")o[k]=el.value.trim()||row?.slug||slugify(o.title||"")+"-"+rnd();
+    else o[k]=el.value.trim()}
+   if(!o.title||o.title.length<2)throw new Error("Please enter a title.");
+   const{error}=row?await sb.from(t).update(o).eq("id",row.id):await sb.from(t).insert(o);
+   if(error)throw new Error(error.code=="23505"?"That slug is already used. Change the slug.":error.message);
+   msg(o.status=="published"?"Saved and published.":"Saved as draft.");list(t)}
+  catch(er){msg(er.message,1);b.disabled=false}}}
+
+/* ---------- inquiries and subscribers ---------- */
+async function inquiries(){
+ const m=$("#main"),{data,error}=await sb.from("inquiries").select("*").order("created_at",{ascending:false}).limit(200);
+ if(error)return m.innerHTML="<p>"+esc(error.message)+"</p>";
+ m.innerHTML=`<h1>Inquiries</h1><div class="card">${data.map(r=>`<details data-id="${r.id}"><summary><span class="badge ${r.status}">${r.status}</span> <b>${esc(r.subject)}</b> · ${esc(r.full_name)} · ${new Date(r.created_at).toLocaleDateString()} · <small>${r.kind}</small></summary>
+ <p>${esc(r.message).replace(/\n/g,"<br>")}</p><p><small>${esc(r.organization||"")} ${esc(r.country||"")} · <a href="mailto:${esc(r.email)}">${esc(r.email)}</a> ${esc(r.phone||"")} · ${esc(r.category)}</small></p>
+ <div class="row"><select data-s style="width:auto">${["new","read","replied","archived"].map(s=>`<option${s==r.status?" selected":""}>${s}</option>`).join("")}</select>
+ <input data-n placeholder="Internal notes" value="${esc(r.internal_notes||"")}" style="flex:1;min-width:200px"><button class="btn n" data-save>Save</button>${isSuper()?'<button class="btn d" data-del>Delete</button>':""}</div></details>`).join("")||"<p>No inquiries yet.</p>"}</div>`;
+ m.onclick=async e=>{const b=e.target.closest("button");if(!b)return;const d=b.closest("details"),id=d.dataset.id;
+  if(b.dataset.save!==undefined){const{error}=await sb.from("inquiries").update({status:d.querySelector("[data-s]").value,internal_notes:d.querySelector("[data-n]").value||null,handled_by:me.id}).eq("id",id);error?msg(error.message,1):msg("Saved.")}
+  if(b.dataset.del!==undefined&&confirm("Delete this inquiry?")){const{error}=await sb.from("inquiries").delete().eq("id",id);error?msg(error.message,1):inquiries()}}}
+async function subscribers(){
+ const{data,error}=await sb.from("subscribers").select("*").order("created_at",{ascending:false});
+ $("#main").innerHTML=`<h1>Newsletter subscribers</h1><div class="card tw"><table><tr><th>Email</th><th>Subscribed</th></tr>${(data||[]).map(r=>`<tr><td>${esc(r.email)}</td><td>${new Date(r.created_at).toLocaleDateString()}</td></tr>`).join("")||"<tr><td colspan=2>None yet.</td></tr>"}</table>${error?esc(error.message):""}</div>`}
+
+/* ---------- media ---------- */
+async function media(){
+ const m=$("#main");m.innerHTML=`<h1>Media and documents</h1><div class="card"><div class="row"><select id="bk" style="width:auto"><option value="site-media">site-media (public website files)</option><option value="internal-docs">internal-docs (private, staff only)</option></select><input type="file" id="mf" style="width:auto"><button class="btn" id="mu">Upload</button></div><small>Files get random names. Anything in site-media can be opened by anyone with its link; put confidential files in internal-docs. Max 10 MB.</small><div id="ml" class="tw"></div></div>`;
+ const load=async()=>{const bk=$("#bk").value,{data,error}=await sb.storage.from(bk).list("library",{limit:200,sortBy:{column:"created_at",order:"desc"}});
+  $("#ml").innerHTML=error?esc(error.message):"<table>"+(data||[]).filter(f=>f.id).map(f=>`<tr><td>${esc(f.name)}</td><td><button class="btn n" data-o="${esc(f.name)}">${bk=="site-media"?"Copy link":"Open"}</button> <button class="btn d" data-r="${esc(f.name)}">Delete</button></td></tr>`).join("")+"</table>"};
+ $("#bk").onchange=load;
+ $("#mu").onclick=async()=>{const f=$("#mf").files[0];if(!f)return msg("Choose a file.",1);if(f.size>10*1048576)return msg("File is larger than 10 MB.",1);
+  const ext=(f.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,""),{error}=await sb.storage.from($("#bk").value).upload(`library/${crypto.randomUUID()}.${ext}`,f,{contentType:f.type});
+  error?msg(error.message,1):(msg("Uploaded."),$("#mf").value="",load())};
+ $("#ml").onclick=async e=>{const b=e.target.closest("button");if(!b)return;const bk=$("#bk").value;
+  if(b.dataset.o){const p="library/"+b.dataset.o;
+   if(bk=="site-media"){const u=sb.storage.from(bk).getPublicUrl(p).data.publicUrl;try{await navigator.clipboard.writeText(u);msg("Link copied.")}catch{prompt("Copy this link:",u)}}
+   else{const{data,error}=await sb.storage.from(bk).createSignedUrl(p,300);error?msg(error.message,1):window.open(data.signedUrl,"_blank","noopener")}}
+  if(b.dataset.r&&confirm("Delete this file?")){const{error}=await sb.storage.from(bk).remove(["library/"+b.dataset.r]);error?msg(error.message,1):load()}};
+ load()}
+
+/* ---------- administrators ---------- */
+async function users(){
+ const{data,error}=await sb.from("profiles").select("*").order("created_at");
+ $("#main").innerHTML=`<h1>Administrators</h1><div class="card tw"><table><tr><th>Name / email</th><th>Role</th><th>Active</th></tr>${(data||[]).map(p=>`<tr><td>${esc(p.full_name)}<br><small>${esc(p.email)}</small></td>
+ <td><select data-id="${p.id}" data-f="role" style="width:auto"${p.id==me.id?" disabled":""}>${["super_admin","editor","viewer"].map(r=>`<option${r==p.role?" selected":""}>${r}</option>`).join("")}</select></td>
+ <td><input type="checkbox" style="width:auto" data-id="${p.id}" data-f="active"${p.active?" checked":""}${p.id==me.id?" disabled":""}></td></tr>`).join("")}</table>${error?esc(error.message):""}
+ <p><small>To add an administrator: Supabase dashboard > Authentication > Users > Add user (tick Auto Confirm). They appear here as <b>viewer</b>; set their role above. Roles: super_admin (everything), editor (create, edit, publish, handle inquiries, upload), viewer (read-only content).</small></p></div>`;
+ $("#main").onchange=async e=>{const t=e.target;if(!t.dataset.f)return;const v=t.dataset.f=="active"?t.checked:t.value;
+  const{error}=await sb.from("profiles").update({[t.dataset.f]:v}).eq("id",t.dataset.id);error?msg(error.message,1):msg("Updated.")}}
+boot();
+</script>
+</body>
+</html>
