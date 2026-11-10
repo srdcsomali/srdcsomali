@@ -67,24 +67,31 @@ function msg(t,err){if(err&&/jwt expired|invalid jwt/i.test(t))return expire();c
 const canEdit=()=>me&&["super_admin","editor"].includes(me.role),isSuper=()=>me&&me.role==="super_admin";
 
 /* ---------- login ---------- */
+const ADMIN_URL="https://srdcsomali.netlify.app/admin.html"; /* production admin page used in password recovery emails; update if a custom domain becomes the main address */
+const HP=new URLSearchParams(location.hash.replace(/^#/,""));let RECOVERY=HP.get("type")==="recovery",LINKERR=HP.get("error_description");
 function showLogin(note,recovery){
  $("#root").innerHTML=`<div class="login card"><img src="logo.png" alt="SRDC"><h1>${recovery?"Set a new password":"Administrator login"}</h1>${note?`<p>${esc(note)}</p>`:""}
  <form id="lf">${recovery?"":'<label for="le">Email</label><input id="le" type="email" required autocomplete="username"><br><br>'}
  <label for="lp">${recovery?"New password (min. 10 characters)":"Password"}</label><input id="lp" type="password" required minlength="${recovery?10:1}" autocomplete="${recovery?"new-password":"current-password"}"><br><br>
- <button class="btn" style="width:100%">${recovery?"Save password":"Sign in"}</button></form>
+ ${recovery?'<label for="lp2">Confirm new password</label><input id="lp2" type="password" required minlength="10" autocomplete="new-password"><br><br>':""}<button class="btn" style="width:100%">${recovery?"Save password":"Sign in"}</button></form>
  ${recovery?"":'<p><button class="btn l" id="fp" type="button">Forgot password</button></p>'}</div>`;
  $("#lf").onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;
-  if(recovery){const{error}=await sb.auth.updateUser({password:$("#lp").value});b.disabled=false;if(error)return msg(error.message,1);msg("Password updated.");return boot()}
+  if(recovery){const pw=$("#lp").value;if(pw!==$("#lp2").value){b.disabled=false;return msg("The two passwords do not match.",1)}
+   const{error}=await sb.auth.updateUser({password:pw});b.disabled=false;if(error)return msg(error.message,1);
+   RECOVERY=false;history.replaceState(null,"",location.pathname);await sb.auth.signOut();return showLogin("Password updated. Please sign in with your new password.")}
   const{error}=await sb.auth.signInWithPassword({email:$("#le").value.trim(),password:$("#lp").value});b.disabled=false;
   if(error)return msg("Invalid email or password.",1);boot()};
  if(!recovery)$("#fp").onclick=async()=>{const em=$("#le").value.trim();if(!em)return msg("Enter your email first.",1);
-  await sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});msg("If the account exists, a reset email has been sent.")}}
+  const{error}=await sb.auth.resetPasswordForEmail(em,{redirectTo:ADMIN_URL}),rl=error&&error.status===429;msg(rl?"Too many requests. Please wait a few minutes and try again.":"If the account exists, a reset email has been sent.",rl)}}
 async function boot(){
- const{data:{session}}=await sb.auth.getSession();if(!session)return showLogin();
+ const{data:{session}}=await sb.auth.getSession();
+ if(LINKERR){LINKERR=null;RECOVERY=false;history.replaceState(null,"",location.pathname);return showLogin("This password recovery link is invalid or has expired. Use Forgot password to request a new one.")}
+ if(RECOVERY){if(!session){RECOVERY=false;return showLogin("This password recovery link is invalid or has expired. Use Forgot password to request a new one.")}return showLogin("Choose a new password for your administrator account.",true)}
+ if(!session)return showLogin();
  const{data:p}=await sb.from("profiles").select("*").eq("id",session.user.id).maybeSingle();
  if(!p||!p.active){await sb.auth.signOut();return showLogin("This account does not have access.")}
  me=p;shell()}
-sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY")showLogin("",true);if(ev==="SIGNED_OUT"&&me)expire()});
+sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY"){RECOVERY=true;showLogin("Choose a new password for your administrator account.",true)}if(ev==="SIGNED_OUT"&&me)expire()});
 document.addEventListener("visibilitychange",async()=>{if(!document.hidden&&me){const{data:{session}}=await sb.auth.getSession();if(!session)expire()}});
 
 /* ---------- shell ---------- */
