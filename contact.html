@@ -23,10 +23,10 @@
   if(!sb){location.href="mailto:info@srdcsomali.com?subject="+encodeURIComponent("["+cat+"] "+g("s"))+"&body="+encodeURIComponent(g("m")+"\\n\\n"+g("n")+" "+g("e"));return}
   b.disabled=true;m.textContent="Sending…";
   const kind=cat=="Partnership Opportunities"?"partnership":cat=="Consultancy Services"?"consultancy":"contact";
-  const{data:inquiry,error}=await sb.from("inquiries").insert({kind,full_name:g("n"),organization:g("o")||null,email:g("e"),phone:g("t")||null,country:g("c")||null,category:cat,subject:g("s"),message:g("m"),consent:true}).select("id").single();
+  const inquiry={kind,full_name:g("n"),organization:g("o")||null,email:g("e"),phone:g("t")||null,country:g("c")||null,category:cat,subject:g("s"),message:g("m"),consent:true};const{error}=await sb.from("inquiries").insert(inquiry);
   if(error){b.disabled=false;m.textContent="Sorry, we could not save your inquiry. Please email info@srdcsomali.com.";return}
   let noticeSent=false;
-  try{const{error:notifyError}=await sb.functions.invoke("notify-inquiry",{body:{inquiry_id:inquiry.id}});noticeSent=!notifyError;if(notifyError)console.error("SRDC email notification:",notifyError)}catch(notifyError){console.error("SRDC email notification:",notifyError)}
+  try{const{error:notifyError}=await sb.functions.invoke("notify-inquiry",{body:{full_name:inquiry.full_name,organization:inquiry.organization,email:inquiry.email,phone:inquiry.phone,country:inquiry.country,category:inquiry.category,subject:inquiry.subject,message:inquiry.message}});noticeSent=!notifyError;if(notifyError)console.error("SRDC email notification:",notifyError)}catch(notifyError){console.error("SRDC email notification:",notifyError)}
   b.disabled=false;
   m.textContent=noticeSent?"Thank you. Your inquiry has been received. SRDC has been notified and will follow up using your email address.":"Thank you. Your inquiry has been saved. Our team will review it shortly.";
   e.target.reset()})})()</script>
