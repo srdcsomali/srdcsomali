@@ -17,7 +17,7 @@
  if(q.get("category")&&[...$("#k").options].some(o=>o.value==q.get("category")))$("#k").value=q.get("category");if(q.get("subject"))$("#s").value=q.get("subject").slice(0,200);
  $("#cf").addEventListener("submit",async e=>{e.preventDefault();const m=$("#fm"),g=id=>$("#"+id).value.trim();if($("#hp").value)return;
   if(g("n").length<2||g("s").length<2||g("m").length<5){m.textContent="Please complete name, subject and message.";return}
-  if(!/^\\S+@\\S+\\.\\S+$/.test(g("e"))){m.textContent="Please enter a valid email address.";return}
+  if(!/^\S+@\S+\.\S+$/.test(g("e"))){m.textContent="Please enter a valid email address.";return}
   if(!$("#pc").checked){m.textContent="Please accept the privacy consent.";return}
   const cat=g("k"),b=e.target.querySelector("button[type=submit]");
   if(!sb){location.href="mailto:info@srdcsomali.com?subject="+encodeURIComponent("["+cat+"] "+g("s"))+"&body="+encodeURIComponent(g("m")+"\\n\\n"+g("n")+" "+g("e"));return}
